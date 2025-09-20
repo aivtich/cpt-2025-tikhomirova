@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Социально-психологическое тестирование - РОСБИОТЕХ</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* Стили остаются без изменений */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .auth-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .student-test, .psychologist-dashboard {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .option {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .option:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .option.selected {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #eee;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .report-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .report-filters .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .chart-container {
+            margin-top: 20px;
+            position: relative;
+            height: 400px;
+        }
+        
+        .export-buttons {
+            margin: 20px 0;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #ccc;
+            font-size: 14px;
+        }
+        
+        .student-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .highlight {
+            background-color: #ffeb3b;
+            font-weight: bold;
+        }
+        
+        .recommendation {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Социально-психологическое тестирование</h1>
+        <p>ФГБОУ ВО «РОСБИОТЕХ»</p>
+    </header>
+
+    <div class="container">
+        <!-- Секция аутентификации -->
+        <div id="authSection" class="auth-section">
+            <div class="tabs">
+                <div class="tab active" id="studentTab">Студент</div>
+                <div class="tab" id="psychologistTab">Психолог</div>
+            </div>
+            
+            <div id="studentAuth">
+                <h2>Вход для студента</h2>
+                <div class="form-group">
+                    <label for="studentName">ФИО студента:</label>
+                    <input type="text" id="studentName" placeholder="Введите ваше ФИО">
+                </div>
+                <div class="form-group">
+                    <label for="studentGroup">Группа №:</label>
+                    <input type="text" id="studentGroup" placeholder="Введите номер вашей группы">
+                </div>
+                <div class="form-group">
+                    <label for="studentAge">Возраст:</label>
+                    <input type="number" id="studentAge" placeholder="Введите ваш возраст" min="15" max="30">
+                </div>
+                <button id="studentLogin">Войти</button>
+            </div>
+            
+            <div id="psychologistAuth" class="hidden">
+                <h2>Вход для психолога</h2>
+                <div class="form-group">
+                    <label for="psychologistLogin">Логин:</label>
+                    <input type="text" id="psychologistLogin" placeholder="Введите логин">
+                </div>
+                <div class="form-group">
+                    <label for="psychologistPassword">Пароль:</label>
+                    <input type="password" id="psychologistPassword" placeholder="Введите пароль">
+                </div>
+                <button id="psychologistLoginBtn">Войти</button>
+            </div>
+        </div>
+
+        <!-- Интерфейс студента -->
+        <div id="studentTest" class="student-test hidden">
+            <h2>Социально-психологическое тестирование</h2>
+            <p>Каждый человек в жизни сталкивается с трудностями, рисками, но все их преодолевают по-разному. 
+            В условиях трудных жизненных ситуаций нужно проявлять психологическую устойчивость. 
+            Научиться этому можно, если хорошо в себе разобраться.</p>
+            
+            <p>Тест выявит степень вашей психологической устойчивости в трудных жизненных ситуациях. 
+            И чем откровеннее будут ваши ответы, тем точнее вы получите результат. 
+            Конфиденциальность личных данных гарантируется.</p>
+            
+            <div class="student-info">
+                <p><strong>ФИО:</strong> <span id="currentStudentName"></span></p>
+                <p><strong>Группа:</strong> <span id="currentStudentGroup"></span></p>
+                <p><strong>Возраст:</strong> <span id="currentStudentAge"></span></p>
+                <p><strong>Индивидуальный код:</strong> <span id="currentStudentCode"></span></p>
+            </div>
+            
+            <div id="questionContainer">
+                <!-- Вопросы будут загружаться здесь -->
+            </div>
+            
+            <div class="navigation">
+                <button id="prevQuestion">Предыдущий вопрос</button>
+                <span id="questionCounter">Вопрос 1 из 140</span>
+                <button id="nextQuestion">Следующий вопрос</button>
+            </div>
+            
+            <button id="submitTest" class="hidden">Завершить тестирование</button>
+        </div>
+
+        <!-- Интерфейс психолога -->
+        <div id="psychologistDashboard" class="psychologist-dashboard hidden">
+            <h2>Панель психолога</h2>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="students">Студенты</div>
+                <div class="tab" data-tab="groups">Группы</div>
+                <div class="tab" data-tab="reports">Отчеты</div>
+            </div>
+            
+            <div id="studentsTab" class="tab-content">
+                <h3>Список студентов</h3>
+                <table id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>ФИО</th>
+                            <th>Группа</th>
+                            <th>Возраст</th>
+                            <th>Код</th>
+                            <th>Статус</th>
+                            <th>Прогресс</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Данные будут загружены динамически -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="groupsTab" class="tab-content hidden">
+                <h3>Статистика по группам</h3>
+                <div class="stats-grid" id="groupsStats">
+                    <!-- Данные будут загружены динамически -->
+                </div>
+            </div>
+            
+            <div id="reportsTab" class="tab-content hidden">
+                <h3>Отчеты</h3>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label for="reportType">Тип отчета:</label>
+                        <select id="reportType">
+                            <option value="individual">Индивидуальный отчет по студенту</option>
+                            <option value="group">Отчет по группе</option>
+                            <option value="general">Общий отчет по всем группам</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="groupFilter">
+                        <label for="selectedGroup">Группа:</label>
+                        <select id="selectedGroup">
+                            <!-- Группы будут загружены динамически -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="studentFilter">
+                        <label for="selectedStudent">Студент:</label>
+                        <select id="selectedStudent">
+                            <!-- Студенты будут загружены динамически -->
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="generateReport">Сформировать отчет</button>
+                
+                <div class="export-buttons">
+                    <button id="exportWord">Экспорт в Word</button>
+                    <button id="exportExcel">Экспорт в Excel</button>
+                    <button id="exportPDF">Экспорт в PDF</button>
+                </div>
+                
+                <div id="reportResult" class="hidden">
+                    <h4>Результаты отчета</h4>
+                    <div id="reportHeader">
+                        <!-- Заголовок отчета с кодом студента -->
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="reportChart"></canvas>
+                    </div>
+                    
+                    <div id="reportTable">
+                        <h5>Детальные результаты</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Показатель</th>
+                                    <th>Значение</th>
+                                    <th>Норма</th>
+                                    <th>Интерпретация</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Данные будут загружены динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="aiRecommendations" class="recommendation hidden">
+                        <h5>Рекомендации на основе результатов тестирования</h5>
+                        <p id="recommendationText"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>педагог-психолог, автор программы: Тихомирова Анна Ивановна</p>
+    </footer>
+
+    <script>
+        // Полный список вопросов для формы "С-140"
+        const testQuestions = [
+            "Мое слово всегда совпадает с делом.",
+            "Если я хочу что-нибудь сделать, но окружающие считают, что этого делать не стоит, то я готов отказаться от своих намерений.",
+            "Я думаю, что люди, которые говорят, что что-то вредно для здоровья, часто просто перестраховываются.",
+            "Мне кажется, что без риска жизнь будет скучной.",
+            "После того как я проиграю в какую-нибудь игру я долго не могу успокоиться.",
+            "Меня охватывает беспокойство, когда я думаю о своих делах и заботах.",
+            "Нередко мне кажутся без выходными положения, из которых можно найти выход.",
+            "У меня есть друзья или близкие знакомые, пробовавшие наркотики.",
+            "Я всегда делаю и говорю одно и то же.",
+            "Родители уважают во мне личность.",
+            "Студенты моей группы приветливы и доброжелательны со мной.",
+            "Я стараюсь быть в курсе всего происходящего вокруг меня.",
+            "Мне легко долго сосредотачиваться на работе, которая мне не интересна.",
+            "Если я как следует постараюсь, то я всегда найду решение даже сложным проблемам.",
+            "Везде и всегда я прихожу вовремя.",
+            "Мне трудно сказать \"нет\", когда меня о чем-либо просят.",
+            "Я думаю, что иногда здоровый образ жизни не так полезен, как кажется.",
+            "Я часто испытываю потребность в острых ощущениях.",
+            "Я скучаю при решении задач, требующих обдумывания.",
+            "Я так сильно переживаю свои разочарования, что потом долго не могу о них забыть.",
+            "Неприятности меня сильно расстраивают, я падаю духом.",
+            "У меня есть друзья или близкие знакомые, употребляющие наркотики.",
+            "Я никогда и никуда не опаздываю.",
+            "Дома интересуются моей жизнью.",
+            "У меня со студентами моей группы хорошие отношения.",
+            "У меня мало свободного времени.",
+            "Обычно я сохраняю спокойствие в ожидании опаздывающего к назначенному времени друга или подруги.",
+            "Если мне что-либо мешает, то я все же нахожу пути достижения своей цели.",
+            "Я всегда сдерживаю свои обещания.",
+            "Для меня мнение друзей или знакомых важнее, чем мое собственное.",
+            "Я думаю, что пытаясь полностью следовать правилам, люди часто упускают новые возможности.",
+            "Мне кажется, что бурная и опасная жизнь интереснее, чем спокойная и размеренная.",
+            "Я часто говорю, не подумав.",
+            "Я стараюсь избегать критических ситуаций и трудностей.",
+            "При больших неприятностях я склонен без достаточных оснований винить себя.",
+            "Я видел(а) как мои знакомые употребляли наркотики.",
+            "Все что я обещаю я всегда выполняю, даже если меня никто не проверяет.",
+            "В семье считают, что я добьюсь больших успехов в жизни.",
+            "Я думаю, что студенты, обучающиеся со мной в одной группе, относятся ко мне хорошо.",
+            "Мне нравится участвовать в конкурсах и соревнованиях.",
+            "Всегда стараюсь продумать способ достижения цели, прежде чем начинать действовать.",
+            "Мне довольно просто удается достичь своих целей.",
+            "Я всегда говорю только о том, в чем хорошо разбираюсь.",
+            "Мне трудно принимать самостоятельные решения без помощи друзей или знакомых.",
+            "Я считаю, что взрослые часто запрещают детям что-то не потому, что это действительно опасно, а потому, что это неудобно им.",
+            "Мне нравится испытывать себя в разных ситуациях.",
+            "Если мне не удастся выиграть в какую-нибудь игру у моих сверстников, я обижусь и не буду больше играть.",
+            "Я слишком переживаю из-за пустяков.",
+            "Когда у меня что-то не получается, я срываю зло или досаду на окружающих.",
+            "Некоторые из моих знакомых рассказывали мне, что пробовали или употребляли наркотики.",
+            "Я всегда общаюсь только на темы, в которых хорошо разбираюсь.",
+            "Если у родителей есть свободное время, то они стараются провести его вместе со мной.",
+            "Среди сокурсников, обучающихся со мной в одной группе, я не чувствую себя лишним.",
+            "Будет моя жизнь интересной или нет зависит от меня.",
+            "Я всегда придерживаюсь своих планов, даже если приходится выбирать между ними и компанией друзей.",
+            "В неожиданных ситуациях я всегда знаю, как я должен(должна) себя вести.",
+            "Ко всем моим знакомым я отношусь с симпатией.",
+            "Интересы, желания друзей или знакомых я часто ставлю выше своих собственных.",
+            "Мне кажется, что самые лучшие вещи происходят, когда человек позволяет себе быть совершенно свободным от правил.",
+            "Мне нравится делать что-либо «на спор».",
+            "Когда я раздражаюсь, то не могу сдержаться и говорю все, что думаю.",
+            "Нередко я проигрываю из-за того, что недостаточно быстро принимаю решения.",
+            "Я сильно нервничаю, когда не получается достичь задуманного.",
+            "Я слышал, что моим знакомым предлагали попробовать наркотическое вещество.",
+            "Мне нравятся все мои знакомые.",
+            "Я знаю, что своим родителям я нравлюсь таким, какой(ая) я есть.",
+            "Я думаю, что мои сокурсники будут жалеть, если мне придется перейти в другое учебное заведение.",
+            "Моя жизнь наполнена интересными событиями и яркими впечатлениями.",
+            "В случае неудачи я всегда стараюсь понять, что мною сделано неправильно.",
+            "При непредвиденно возникающих трудностях я верю, что смогу с ними справиться.",
+            "Я всегда говорю только правду.",
+            "Мне важно, что обо мне думают друзья или знакомые.",
+            "Я думаю, что большинство людей склонны солгать в своих интересах.",
+            "Я считаю, что в жизни нужно уметь рисковать.",
+            "Я часто себя ругаю за поспешные решения.",
+            "Ожидаемые трудности, обычно, очень тревожат меня.",
+            "Вас злит, что кому-то везет в жизни больше, чем вам.",
+            "Среди моих знакомых есть такие, которые считают, что употребление наркотиков помогает справляться с жизненными трудностями.",
+            "Я никогда не обманываю.",
+            "Родители считают, что во мне больше достоинств, чем недостатков.",
+            "Сокурсники, которые учатся вместе со мной в одной группе, прислушиваются к моему мнение.",
+            "Мне интересно знакомиться с новыми людьми.",
+            "Я могу довести начатое дело до конца, если даже возникает желание его бросить.",
+            "Если я приложу достаточно усилий, то смогу справиться с большинством проблем.",
+            "Я всегда соблюдаю правила при переходе улицы.",
+            "У меня есть знакомый, просьбы и желания которого я выполню не задумываясь.",
+            "Мне кажется, что большинство людей добиваются успеха в жизни не совсем честным путём.",
+            "Неожиданности и экстрим дарят мне интерес к жизни.",
+            "В повседневной жизни я часто действую под влиянием момента, не думая о возможных последствиях.",
+            "Мне не хватает уверенности в себе.",
+            "Когда у меня не получается добиться того, что я хочу, я чувствую отчаяние.",
+            "В моем окружении есть люди, которые лечатся от наркомания.",
+            "Да даже когда я сильно тороплюсь, я соблюдаю правила дорожного движения.",
+            "Я чувствую, что родители меня любят.",
+            "Я думаю, что студентам моей группы интересно проводить со мной свободное время.",
+            "Я постоянно пытаюсь улучшить или изменить что-нибудь в своей жизни.",
+            "Мне легко заставить себя переделать что-либо, когда меня не устраивает качество сделанного.",
+            "Я готов(а) к любым трудностям, поскольку полагаюсь на собственные способности.",
+            "Начав дело, я всегда завершаю его.",
+            "Когда моими друзьями или знакомыми принимается какое-либо решение, я стараюсь быть на стороне большинства, независимо от того правильное оно или нет.",
+            "Я считаю, что большинство людей честны главным образом потому, что боятся попасться.",
+            "Я могу сесть в автомобиль, если знаю, что у него могут быть неисправны тормоза.",
+            "У меня вызывают раздражение люди, которые не могут быстро решиться на что-нибудь.",
+            "Я часто нервничаю.",
+            "Жизненные трудности выводят меня из равновесия и заставляют нервничать.",
+            "В своей жизни мне довелось разговаривать с людьми, употребляющими наркотики.",
+            "Я всегда довожу начатое дело до конца.",
+            "Моим родителям нравятся мои увлечения.",
+            "У меня редко возникают конфликты с сокурсниками.",
+            "Я довольно хорошо справляюсь с большей частью ежедневных обязанностей.",
+            "При необходимости, я могу заниматься своим делом даже в неудобной, неподходящей обстановке.",
+            "Если передо мной встает какая-либо проблема, то я обычно нахожу несколько вариантов ее решения.",
+            "У меня не бывает запрещенных желаний и мыслей.",
+            "Мое поведение часто зависит от авторитетного мнения моих знакомых.",
+            "Я думаю, что вполне допустимо обойти закон, если ты его прямо не нарушаешь.",
+            "Мне нравится слушать рассказы о том, как можно экстремально провести время.",
+            "Мне не свойственно долго перебирать разные варианты при принятии решения.",
+            "Меня волнуют возможные неудачи.",
+            "Меня сильно огорчает то, что не осуществляются планы и не сбываются надежды.",
+            "Я считаю, что среди наркоманов есть хорошие люди, с которыми интересно поговорить.",
+            "У меня не бывает мыслей, которые нужно скрывать от других.",
+            "В семье уважают мое мнение и считаются с ним.",
+            "В группе, где я учусь, есть такой человек, которому я могу рассказать о своих проблемах.",
+            "Я люблю заниматься спортом.",
+            "Я всегда стараюсь выслушать собеседника не перебивая, даже если не терпится ему возразить.",
+            "Я могу что-либо придумать даже в без выходных на первый взгляд ситуациях.",
+            "Я всегда соглашаюсь, когда мне указывают на мои ошибки.",
+            "Я готов нарушить запрет, если его нарушат и мои товарищи.",
+            "Я считаю, почти каждый солжет, чтобы избежать неприятностей.",
+            "Мне нравятся занятия и увлечения, связанные с риском.",
+            "Я «ерзаю» сидя на занятиях или представлениях.",
+            "Я принимаю все слишком близко к сердцу.",
+            "Мне кажется, что жизнь проходит мимо меня (проходит зря).",
+            "Если я узнаю, что среди знакомых кто-то, пробует или употребляет наркотики я буду относится к нему, как и раньше.",
+            "Я всегда охотно признаю свои ошибки.",
+            "Я чувствую, что дома мне доверяют.",
+            "Студенты моей группы помогают мне, когда я нахожусь в сложной ситуации.",
+            "Мне хочется быть впереди других в любом деле.",
+            "Прежде чем начать какое-либо дело, я стараюсь собрать о нем как можно более полной информации.",
+            "Я обычно способен(на) держать ситуацию под контролем."
+        ];
+
+        // Ключи для субшкал (номер вопроса -> субшкала)
+        const subscaleKeys = {
+            // Факторы риска
+            "По1": [1, 15, 29, 43, 57, 71, 85, 99, 113, 127],
+            "По2": [9, 23, 37, 51, 65, 79, 93, 107, 121, 135],
+            "ПВГ": [2, 16, 30, 44, 58, 72, 86, 100, 114, 128],
+            "ПАУ": [3, 17, 31, 45, 59, 73, 87, 101, 115, 129],
+            "СР": [4, 18, 32, 46, 60, 74, 88, 102, 116, 130],
+            "И": [5, 19, 33, 47, 61, 75, 89, 103, 117, 131],
+            "Т": [6, 20, 34, 48, 62, 76, 90, 104, 118, 132],
+            "Ф": [7, 21, 35, 49, 63, 77, 91, 105, 119, 133],
+            "НСО": [8, 22, 36, 50, 64, 78, 92, 106, 120, 134],
+            
+            // Факторы защиты
+            "ПР": [10, 24, 38, 52, 66, 80, 94, 108, 122, 136],
+            "ПО": [11, 25, 39, 53, 67, 81, 95, 109, 123, 137],
+            "СА": [12, 26, 40, 54, 68, 82, 96, 110, 124, 138],
+            "СП": [13, 27, 41, 55, 69, 83, 97, 111, 125, 139],
+            "С": [14, 28, 42, 56, 70, 84, 98, 112, 126, 140]
+        };
+
+        // Параметры тестирования
+        let currentQuestionIndex = 0;
+        let studentAnswers = [];
+        let currentStudent = null;
+        let students = [];
+
+        // Элементы DOM
+        const authSection = document.getElementById('authSection');
+        const studentTest = document.getElementById('studentTest');
+        const psychologistDashboard = document.getElementById('psychologistDashboard');
+        const questionContainer = document.getElementById('questionContainer');
+        const questionCounter = document.getElementById('questionCounter');
+        const prevButton = document.getElementById('prevQuestion');
+        const nextButton = document.getElementById('nextQuestion');
+        const submitButton = document.getElementById('submitTest');
+        const studentTab = document.getElementById('studentTab');
+        const psychologistTab = document.getElementById('psychologistTab');
+        const studentAuth = document.getElementById('studentAuth');
+        const psychologistAuth = document.getElementById('psychologistAuth');
+        const studentsTable = document.getElementById('studentsTable');
+        const groupsStats = document.getElementById('groupsStats');
+        const reportType = document.getElementById('reportType');
+        const groupFilter = document.getElementById('groupFilter');
+        const studentFilter = document.getElementById('studentFilter');
+        const selectedGroup = document.getElementById('selectedGroup');
+        const selectedStudent = document.getElementById('selectedStudent');
+        const generateReportButton = document.getElementById('generateReport');
+        const reportResult = document.getElementById('reportResult');
+        const reportHeader = document.getElementById('reportHeader');
+        const reportChart = document.getElementById('reportChart');
+        const reportTable = document.getElementById('reportTable');
+        const aiRecommendations = document.getElementById('aiRecommendations');
+        const recommendationText = document.getElementById('recommendationText');
+        const currentStudentName = document.getElementById('currentStudentName');
+        const currentStudentGroup = document.getElementById('currentStudentGroup');
+        const currentStudentAge = document.getElementById('currentStudentAge');
+        const currentStudentCode = document.getElementById('currentStudentCode');
+        const exportWordButton = document.getElementById('exportWord');
+        const exportExcelButton = document.getElementById('exportExcel');
+        const exportPDFButton = document.getElementById('exportPDF');
+
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка данных из localStorage
+            loadFromLocalStorage();
+            
+            // Переключение между вкладками аутентификации
+            studentTab.addEventListener('click', function() {
+                studentTab.classList.add('active');
+                psychologistTab.classList.remove('active');
+                studentAuth.classList.remove('hidden');
+                psychologistAuth.classList.add('hidden');
+            });
+
+            psychologistTab.addEventListener('click', function() {
+                psychologistTab.classList.add('active');
+                studentTab.classList.remove('active');
+                psychologistAuth.classList.remove('hidden');
+                studentAuth.classList.add('hidden');
+            });
+
+            // Вход для студента
+            document.getElementById('studentLogin').addEventListener('click', function() {
+                const name = document.getElementById('studentName').value.trim();
+                const group = document.getElementById('studentGroup').value.trim();
+                const age = document.getElementById('studentAge').value.trim();
+                
+                if (name && group && age) {
+                    // Проверяем, есть ли уже студент с таким ФИО и группой
+                    let student = students.find(s => s.name === name && s.group === group);
+                    
+                    if (!student) {
+                        // Создаем нового студента с уникальным кодом
+                        const code = generateStudentCode(name, group);
+                        student = {
+                            name,
+                            group,
+                            age,
+                            code,
+                            status: "Не начал",
+                            progress: "0%",
+                            answers: new Array(testQuestions.length).fill(null),
+                            results: null
+                        };
+                        students.push(student);
+                        saveToLocalStorage();
+                    } else {
+                        // Обновляем возраст существующего студента
+                        student.age = age;
+                        saveToLocalStorage();
+                    }
+                    
+                    currentStudent = student;
+                    
+                    // Заполняем информацию о студенте
+                    currentStudentName.textContent = student.name;
+                    currentStudentGroup.textContent = student.group;
+                    currentStudentAge.textContent = student.age;
+                    currentStudentCode.textContent = student.code;
+                    
+                    // Загружаем предыдущие ответы, если они есть
+                    studentAnswers = [...student.answers];
+                    
+                    authSection.classList.add('hidden');
+                    studentTest.classList.remove('hidden');
+                    loadQuestion(0);
+                } else {
+                    alert('Пожалуйста, введите ваше ФИО, номер группы и возраст.');
+                }
+            });
+
+            // Вход для психолога
+            document.getElementById('psychologistLoginBtn').addEventListener('click', function() {
+                const login = document.getElementById('psychologistLogin').value;
+                const password = document.getElementById('psychologistPassword').value;
+                
+                // Проверка логина и пароля (в реальной системе это должно быть на сервере)
+                if (login === 'anna' && password === '1234') {
+                    authSection.classList.add('hidden');
+                    psychologistDashboard.classList.remove('hidden');
+                    loadPsychologistData();
+                } else {
+                    alert('Неверные учетные данные.');
+                }
+            });
+
+            // Навигация по вопросам
+            prevButton.addEventListener('click', function() {
+                if (currentQuestionIndex > 0) {
+                    saveAnswer();
+                    loadQuestion(currentQuestionIndex - 1);
+                }
+            });
+
+            nextButton.addEventListener('click', function() {
+                if (currentQuestionIndex < testQuestions.length - 1) {
+                    saveAnswer();
+                    loadQuestion(currentQuestionIndex + 1);
+                }
+            });
+
+            // Завершение теста
+            submitButton.addEventListener('click', function() {
+                saveAnswer();
+                if (confirm('Вы уверены, что хотите завершить тестирование?')) {
+                    submitTest();
+                }
+            });
+
+            // Переключение вкладок в панели психолога
+            document.querySelectorAll('.tab[data-tab]').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Активируем выбранную вкладку
+                    document.querySelectorAll('.tab[data-tab]').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Показываем соответствующий контент
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById(tabName + 'Tab').classList.remove('hidden');
+                    
+                    // Если открываем вкладку с отчетами, обновляем фильтры
+                    if (tabName === 'reports') {
+                        updateReportFilters();
+                    }
+                });
+            });
+
+            // Изменение типа отчета
+            reportType.addEventListener('change', function() {
+                updateReportFilters();
+            });
+
+            // Генерация отчета
+            generateReportButton.addEventListener('click', function() {
+                generateReport();
+            });
+
+            // Экспорт отчетов
+            exportWordButton.addEventListener('click', function() {
+                exportToWord();
+            });
+            
+            exportExcelButton.addEventListener('click', function() {
+                exportToExcel();
+            });
+            
+            exportPDFButton.addEventListener('click', function() {
+                exportToPDF();
+            });
+        });
+
+        // Генерация уникального кода студента (номер группы + первые буквы ФИО заглавными)
+        function generateStudentCode(name, group) {
+            // Получаем первые буквы из ФИО
+            const nameParts = name.split(' ');
+            let initials = '';
+            
+            if (nameParts.length >= 1) initials += nameParts[0].charAt(0).toUpperCase();
+            if (nameParts.length >= 2) initials += nameParts[1].charAt(0).toUpperCase();
+            if (nameParts.length >= 3) initials += nameParts[2].charAt(0).toUpperCase();
+            
+            // Формируем код: номер группы + инициалы
+            return group + initials;
+        }
+
+        // Загрузка вопроса
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            questionCounter.textContent = `Вопрос ${index + 1} из ${testQuestions.length}`;
+            
+            // Показываем/скрываем кнопки навигации
+            prevButton.style.visibility = index > 0 ? 'visible' : 'hidden';
+            nextButton.style.visibility = index < testQuestions.length - 1 ? 'visible' : 'hidden';
+            submitButton.classList.toggle('hidden', index !== testQuestions.length - 1);
+            
+            // Отображаем вопрос
+            questionContainer.innerHTML = `
+                <div class="question">
+                    <h3>${testQuestions[index]}</h3>
+                    <div class="options">
+                        <div class="option" data-value="0">НЕТ</div>
+                        <div class="option" data-value="1">Скорее НЕТ, чем ДА</div>
+                        <div class="option" data-value="2">Скорее Да, чем НЕТ</div>
+                        <div class="option" data-value="3">ДА</div>
+                    </div>
+                </div>
+            `;
+            
+            // Восстанавливаем предыдущий ответ, если он есть
+            if (studentAnswers[index] !== null) {
+                const selectedOption = document.querySelector(`.option[data-value="${studentAnswers[index]}"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('selected');
+                }
+            }
+            
+            // Добавляем обработчики для вариантов ответа
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    studentAnswers[currentQuestionIndex] = parseInt(this.getAttribute('data-value'));
+                    
+                    // Обновляем прогресс студента
+                    if (currentStudent) {
+                        const answeredCount = studentAnswers.filter(a => a !== null).length;
+                        currentStudent.progress = Math.round((answeredCount / testQuestions.length) * 100) + '%';
+                        saveToLocalStorage();
+                    }
+                });
+            });
+        }
+
+        // Сохранение ответа
+        function saveAnswer() {
+            const selectedOption = document.querySelector('.option.selected');
+            if (selectedOption) {
+                studentAnswers[currentQuestionIndex] = parseInt(selectedOption.getAttribute('data-value'));
+            }
+        }
+
+        // Отправка результатов теста
+        function submitTest() {
+            // Сохраняем последний ответ
+            saveAnswer();
+            
+            // Вычисляем результаты
+            const results = calculateResults(studentAnswers);
+            
+            // Обновляем данные студента
+            if (currentStudent) {
+                currentStudent.answers = [...studentAnswers];
+                currentStudent.results = results;
+                currentStudent.status = "Завершил";
+                currentStudent.progress = "100%";
+                saveToLocalStorage();
+            }
+            
+            alert('Тестирование завершено. Ваши ответы сохранены.');
+            
+            // Возвращаемся на страницу входа
+            studentTest.classList.add('hidden');
+            authSection.classList.remove('hidden');
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentGroup').value = '';
+            document.getElementById('studentAge').value = '';
+            
+            // Сбрасываем состояние теста
+            currentQuestionIndex = 0;
+            studentAnswers = [];
+            currentStudent = null;
+        }
+
+        // Расчет результатов тестирования
+        function calculateResults(answers) {
+            const results = {};
+            
+            // Вычисляем значения для каждой субшкалы
+            for (const [subscale, questions] of Object.entries(subscaleKeys)) {
+                let sum = 0;
+                let count = 0;
+                
+                questions.forEach(qIndex => {
+                    // Вопросы нумеруются с 1, а массив answers с 0
+                    const answer = answers[qIndex - 1];
+                    if (answer !== null) {
+                        sum += answer;
+                        count++;
+                    }
+                });
+                
+                // Переводим в проценты (максимальный балл для каждой субшки: 10 вопросов * 3 = 30)
+                results[subscale] = count > 0 ? Math.round((sum / (count * 3)) * 100) : 0;
+            }
+            
+            return results;
+        }
+
+        // Загрузка данных для психолога
+        function loadPsychologistData() {
+            // Заполняем таблицу студентами
+            updateStudentsTable();
+            
+            // Заполняем статистику по группам
+            updateGroupsStats();
+            
+            // Заполняем выпадающие списки для отчетов
+            updateReportFilters();
+        }
+
+        // Обновление таблицы студентов
+        function updateStudentsTable() {
+            const tbody = studentsTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.name}</td>
+                    <td>${student.group}</td>
+                    <td>${student.age || 'Не указан'}</td>
+                    <td>${student.code}</td>
+                    <td>${student.status}</td>
+                    <td>${student.progress}</td>
+                    <td>
+                        <button class="view-report" data-code="${student.code}">Отчет</button>
+                        <button class="delete-student" data-code="${student.code}">Удалить</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Добавляем обработчики для кнопок просмотра отчетов
+            document.querySelectorAll('.view-report').forEach(button => {
+                button.addEventListener('click', function() {
+                    const studentCode = this.getAttribute('data-code');
+                    selectedStudent.value = studentCode;
+                    reportType.value = 'individual';
+                    updateReportFilters();
+                    generateReport();
+                    
+                    // Переключаемся на вкладку отчетов
+                    document.querySelectorAll('.tab[data-tab]').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    document.querySelector('.tab[data-tab="reports"]').classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById('reportsTab').classList.remove('hidden');
+                });
+            });
+            
+            // Добавляем обработчики для кнопок удаления студентов
+            document.querySelectorAll('.delete-student').forEach(button => {
+                button.addEventListener('click', function() {
+                    const studentCode = this.getAttribute('data-code');
+                    if (confirm('Вы уверены, что хотите удалить этого студента?')) {
+                        deleteStudent(studentCode);
+                    }
+                });
+            });
+        }
+
+        // Удаление студента
+        function deleteStudent(studentCode) {
+            students = students.filter(s => s.code !== studentCode);
+            saveToLocalStorage();
+            updateStudentsTable();
+            updateGroupsStats();
+            updateReportFilters();
+        }
+
+        // Обновление статистики по группам
+        function updateGroupsStats() {
+            groupsStats.innerHTML = '';
+            
+            const groupStats = {};
+            students.forEach(student => {
+                if (!groupStats[student.group]) {
+                    groupStats[student.group] = {
+                        total: 0,
+                        completed: 0
+                    };
+                }
+                
+                groupStats[student.group].total++;
+                if (student.status === "Завершил") {
+                    groupStats[student.group].completed++;
+                }
+            });
+            
+            // Получаем уникальные группы из студентов
+            const groups = [...new Set(students.map(s => s.group))].sort();
+            
+            for (const group of groups) {
+                const stats = groupStats[group] || { total: 0, completed: 0 };
+                const completionRate = Math.round((stats.completed / stats.total) * 100);
+                
+                const statCard = document.createElement('div');
+                statCard.className = 'stat-card';
+                statCard.innerHTML = `
+                    <h4>Группа ${group}</h4>
+                    <p>Всего студентов: ${stats.total}</p>
+                    <p>Прошли тест: ${stats.completed} (${completionRate}%)</p>
+                    <p>Не начали: ${stats.total - stats.completed}</p>
+                `;
+                groupsStats.appendChild(statCard);
+            }
+        }
+
+        // Обновление фильтров отчетов
+        function updateReportFilters() {
+            const reportTypeValue = reportType.value;
+            
+            // Получаем уникальные группы из студентов
+            const groups = [...new Set(students.map(s => s.group))].sort();
+            
+            // Показываем/скрываем фильтры в зависимости от типа отчета
+            if (reportTypeValue === 'individual') {
+                groupFilter.classList.remove('hidden');
+                studentFilter.classList.remove('hidden');
+                
+                // Заполняем список групп
+                selectedGroup.innerHTML = '';
+                groups.forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group;
+                    selectedGroup.appendChild(option);
+                });
+                
+                // Заполняем список студентов выбранной группы
+                updateStudentList();
+                
+                // Обработчик изменения группы
+                selectedGroup.addEventListener('change', updateStudentList);
+                
+            } else if (reportTypeValue === 'group') {
+                groupFilter.classList.remove('hidden');
+                studentFilter.classList.add('hidden');
+                
+                // Заполняем список групп
+                selectedGroup.innerHTML = '';
+                groups.forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group;
+                    selectedGroup.appendChild(option);
+                });
+                
+            } else { // general
+                groupFilter.classList.add('hidden');
+                studentFilter.classList.add('hidden');
+            }
+        }
+
+        // Обновление списка студентов
+        function updateStudentList() {
+            const group = selectedGroup.value;
+            selectedStudent.innerHTML = '';
+            
+            const groupStudents = students.filter(s => s.group === group);
+            groupStudents.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.code;
+                option.textContent = student.name;
+                selectedStudent.appendChild(option);
+            });
+        }
+
+        // Генерация отчета
+        function generateReport() {
+            const reportTypeValue = reportType.value;
+            
+            if (reportTypeValue === 'individual') {
+                generateIndividualReport();
+            } else if (reportTypeValue === 'group') {
+                generateGroupReport();
+            } else {
+                generateGeneralReport();
+            }
+            
+            reportResult.classList.remove('hidden');
+        }
+
+        // Генерация индивидуального отчета
+        function generateIndividualReport() {
+            const studentCode = selectedStudent.value;
+            const student = students.find(s => s.code === studentCode);
+            
+            if (!student || !student.results) {
+                alert('Для выбранного студента нет данных тестирования.');
+                return;
+            }
+            
+            // Заполняем заголовок отчета
+            reportHeader.innerHTML = `
+                <h4>Индивидуальный отчет студента: ${student.name}</h4>
+                <p><strong>Группа:</strong> ${student.group} | <strong>Код:</strong> ${student.code} | <strong>Дата тестирования:</strong> ${new Date().toLocaleDateString()}</p>
+            `;
+            
+            // Создаем радарную диаграмму
+            const ctx = reportChart.getContext('2d');
+            
+            if (window.reportChartInstance) {
+                window.reportChartInstance.destroy();
+            }
+            
+            // Данные для отчета (примерные нормативные значения)
+            const labels = ['Потребность в одобрении', 'Подверженность влиянию группы', 'Склонность к риску', 'Тревожность', 'Самоэффективность'];
+            const studentData = [
+                Math.round((student.results.По1 + student.results.По2) / 2), 
+                student.results.ПВГ, 
+                student.results.СР, 
+                student.results.Т, 
+                student.results.С
+            ];
+            
+            window.reportChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Показатели студента',
+                        data: studentData,
+                        fill: true,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(54, 162, 235)'
+                    }, {
+                        label: 'Нормативные значения',
+                        data: [50, 50, 50, 50, 50],
+                        fill: true,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointBackgroundColor: 'rgb(255, 99, 132)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(255, 99, 132)'
+                    }]
+                },
+                options: {
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+            
+            // Показываем таблицу с детальными результатами
+            reportTable.classList.remove('hidden');
+            const tbody = reportTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            // Добавляем строки для каждой субшкалы
+            for (const [subscale, value] of Object.entries(student.results)) {
+                const row = document.createElement('tr');
+                
+                // Определяем нормативное значение и интерпретацию
+                let norm, interpretation;
+                if (value < 33) {
+                    norm = "Пониженный";
+                    interpretation = "Значение ниже нормы может указывать на недостаточную выраженность фактора";
+                } else if (value > 66) {
+                    norm = "Повышенный";
+                    interpretation = "Значение выше нормы может указывать на повышенную выраженность фактора";
+                } else {
+                    norm = "Норма";
+                    interpretation = "Значение в пределах нормы";
+                }
+                
+                // Добавляем класс для выделения, если значение вне нормы
+                if (value < 33 || value > 66) {
+                    row.classList.add('highlight');
+                }
+                
+                row.innerHTML = `
+                    <td>${getSubscaleName(subscale)}</td>
+                    <td>${value}%</td>
+                    <td>${norm}</td>
+                    <td>${interpretation}</td>
+                `;
+                tbody.appendChild(row);
+            }
+            
+            // Генерируем рекомендации ИИ
+            generateAIRecommendations(student.results);
+            aiRecommendations.classList.remove('hidden');
+        }
+
+        // Генерация рекомендаций ИИ на основе результатов
+        function generateAIRecommendations(results) {
+            let recommendations = "<strong>Рекомендации на основе результатов тестирования:</strong><ul>";
+            
+            // Анализируем результаты и генерируем рекомендации
+            if (results.Т > 66) {
+                recommendations += "<li>Высокий уровень тревожности. Рекомендуется освоить техники релаксации и mindfulness.</li>";
+            }
+            
+            if (results.С < 33) {
+                recommendations += "<li>Низкая самоэффективность. Рекомендуется работать над постановкой достижимых целей и развитием уверенности в себе.</li>";
+            }
+            
+            if (results.СР > 66) {
+                recommendations += "<li>Повышенная склонность к риску. Рекомендуется развивать навыки оценки рисков и последствий своих действий.</li>";
+            }
+            
+            if (results.ПВГ > 66) {
+                recommendations += "<li>Высокая подверженность влиянию группы. Рекомендуется развивать навыки самостоятельного принятия решений.</li>";
+            }
+            
+            if (results.ПО < 33) {
+                recommendations += "<li>Низкое принятие однокурсниками. Рекомендуется развивать коммуникативные навыки и участвовать в групповых активностях.</li>";
+            }
+            
+            // Если нет особых рекомендаций
+            if (recommendations === "<strong>Рекомендации на основе результатов тестирования:</strong><ul>") {
+                recommendations += "<li>Результаты в пределах нормы. Рекомендуется продолжать развивать социальные и эмоциональные навыки.</li>";
+            }
+            
+            recommendations += "</ul>";
+            recommendationText.innerHTML = recommendations;
+        }
+
+        // Генерация отчета по группе
+        function generateGroupReport() {
+            const group = selectedGroup.value;
+            const groupStudents = students.filter(s => s.group === group && s.results);
+            
+            if (groupStudents.length === 0) {
+                alert('Для выбранной группы нет данных тестирования.');
+                return;
+            }
+            
+            // Заполняем заголовок отчета
+            reportHeader.innerHTML = `
+                <h4>Отчет по группе: ${group}</h4>
+                <p><strong>Дата формирования отчета:</strong> ${new Date().toLocaleDateString()} | <strong>Количество студентов:</strong> ${groupStudents.length}</p>
+            `;
+            
+            // Вычисляем средние значения по группе
+            const avgResults = {};
+            const subscales = Object.keys(subscaleKeys);
+            
+            subscales.forEach(subscale => {
+                let sum = 0;
+                let count = 0;
+                
+                groupStudents.forEach(student => {
+                    if (student.results[subscale] !== undefined) {
+                        sum += student.results[subscale];
+                        count++;
+                    }
+                });
+                
+                avgResults[subscale] = count > 0 ? Math.round(sum / count) : 0;
+            });
+            
+            // Создаем гистограмму
+            const ctx = reportChart.getContext('2d');
+            
+            if (window.reportChartInstance) {
+                window.reportChartInstance.destroy();
+            }
+            
+            window.reportChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: subscales.map(getSubscaleName),
+                    datasets: [{
+                        label: 'Средние значения по группе',
+                        data: subscales.map(sub => avgResults[sub]),
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Процент выраженности'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Показываем таблицу с детальными результатами
+            reportTable.classList.remove('hidden');
+            const tbody = reportTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            // Добавляем строки для каждой субшкалы
+            for (const [subscale, value] of Object.entries(avgResults)) {
+                const row = document.createElement('tr');
+                
+                // Определяем нормативное значение
+                let norm;
+                if (value < 33) {
+                    norm = "Пониженный";
+                } else if (value > 66) {
+                    norm = "Повышенный";
+                } else {
+                    norm = "Норма";
+                }
+                
+                // Добавляем класс для выделения, если значение вне нормы
+                if (value < 33 || value > 66) {
+                    row.classList.add('highlight');
+                }
+                
+                row.innerHTML = `
+                    <td>${getSubscaleName(subscale)}</td>
+                    <td>${value}%</td>
+                    <td>${norm}</td>
+                    <td>Среднее значение по группе</td>
+                `;
+                tbody.appendChild(row);
+            }
+            
+            // Добавляем список студентов с отклонениями
+            const studentsWithIssues = [];
+            groupStudents.forEach(student => {
+                let hasIssue = false;
+                for (const [subscale, value] of Object.entries(student.results)) {
+                    if (value < 33 || value > 66) {
+                        hasIssue = true;
+                        break;
+                    }
+                }
+                
+                if (hasIssue) {
+                    studentsWithIssues.push(student);
+                }
+            });
+            
+            if (studentsWithIssues.length > 0) {
+                const issuesDiv = document.createElement('div');
+                issuesDiv.className = 'recommendation';
+                issuesDiv.innerHTML = `
+                    <h5>Студенты с показателями вне нормы:</h5>
+                    <ul>
+                        ${studentsWithIssues.map(s => `<li>${s.name} (${s.code})</li>`).join('')}
+                    </ul>
+                `;
+                reportResult.appendChild(issuesDiv);
+            }
+            
+            // Скрываем рекомендации ИИ для группового отчета
+            aiRecommendations.classList.add('hidden');
+        }
+
+        // Генерация общего отчета
+        function generateGeneralReport() {
+            const studentsWithResults = students.filter(s => s.results);
+            
+            if (studentsWithResults.length === 0) {
+                alert('Нет данных тестирования.');
+                return;
+            }
+            
+            // Заполняем заголовок отчета
+            reportHeader.innerHTML = `
+                <h4>Общий отчет по всем группам</h4>
+                <p><strong>Дата формирования отчета:</strong> ${new Date().toLocaleDateString()} | <strong>Всего студентов:</strong> ${students.length} | <strong>Прошли тестирование:</strong> ${studentsWithResults.length}</p>
+            `;
+            
+            // Получаем уникальные группы из студентов
+            const groups = [...new Set(students.map(s => s.group))].sort();
+            
+            // Группируем по группам
+            const groupAverages = {};
+            const groupsWithIssues = [];
+            
+            groups.forEach(group => {
+                const groupStudents = studentsWithResults.filter(s => s.group === group);
+                if (groupStudents.length > 0) {
+                    // Вычисляем средние значения по группе для основных субшкал
+                    const mainSubscales = ['По1', 'ПВГ', 'СР', 'Т', 'С'];
+                    groupAverages[group] = {};
+                    
+                    let groupHasIssues = false;
+                    
+                    mainSubscales.forEach(subscale => {
+                        let sum = 0;
+                        groupStudents.forEach(student => {
+                            sum += student.results[subscale];
+                        });
+                        const avgValue = Math.round(sum / groupStudents.length);
+                        groupAverages[group][subscale] = avgValue;
+                        
+                        // Проверяем, есть ли отклонения от нормы
+                        if (avgValue < 33 || avgValue > 66) {
+                            groupHasIssues = true;
+                        }
+                    });
+                    
+                    if (groupHasIssues) {
+                        groupsWithIssues.push(group);
+                    }
+                }
+            });
+            
+            // Создаем гистограмму для сравнения групп
+            const ctx = reportChart.getContext('2d');
+            
+            if (window.reportChartInstance) {
+                window.reportChartInstance.destroy();
+            }
+            
+            const datasets = [];
+            const colors = [
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(255, 205, 86, 0.5)',
+                'rgba(153, 102, 255, 0.5)'
+            ];
+            
+            let colorIndex = 0;
+            for (const [group, averages] of Object.entries(groupAverages)) {
+                datasets.push({
+                    label: group,
+                    data: Object.values(averages),
+                    backgroundColor: colors[colorIndex % colors.length],
+                    borderColor: colors[colorIndex % colors.length].replace('0.5', '1'),
+                    borderWidth: 1
+                });
+                colorIndex++;
+            }
+            
+            window.reportChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Потребность в одобрении', 'Подверженность влиянию группы', 'Склонность к риску', 'Тревожность', 'Самоэффективность'],
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Процент выраженности'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Показываем таблицу с детальными результатами
+            reportTable.classList.remove('hidden');
+            const tbody = reportTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            // Добавляем строки для каждой группы
+            for (const [group, averages] of Object.entries(groupAverages)) {
+                const row = document.createElement('tr');
+                
+                let hasIssue = false;
+                const values = [];
+                
+                for (const [subscale, value] of Object.entries(averages)) {
+                    values.push(value);
+                    if (value < 33 || value > 66) {
+                        hasIssue = true;
+                    }
+                }
+                
+                // Добавляем класс для выделения, если есть отклонения
+                if (hasIssue) {
+                    row.classList.add('highlight');
+                }
+                
+                row.innerHTML = `
+                    <td>Группа ${group}</td>
+                    <td>${values.join('%, ')}%</td>
+                    <td>${hasIssue ? 'Есть отклонения' : 'В норме'}</td>
+                    <td>Средние значения по группе</td>
+                `;
+                tbody.appendChild(row);
+            }
+            
+            // Добавляем выводы по группам с отклонениями
+            if (groupsWithIssues.length > 0) {
+                const conclusionsDiv = document.createElement('div');
+                conclusionsDiv.className = 'recommendation';
+                conclusionsDiv.innerHTML = `
+                    <h5>Выводы по отчету:</h5>
+                    <p>Следующие группы имеют показатели вне нормы: <strong>${groupsWithIssues.join(', ')}</strong>.</p>
+                    <p>Рекомендуется обратить внимание на эти группы и провести дополнительную работу с обучающимися, 
+                    включая индивидуальные консультации и групповые занятия по развитию психологической устойчивости.</p>
+                `;
+                reportResult.appendChild(conclusionsDiv);
+            } else {
+                const conclusionsDiv = document.createElement('div');
+                conclusionsDiv.className = 'recommendation';
+                conclusionsDiv.innerHTML = `
+                    <h5>Выводы по отчету:</h5>
+                    <p>Все группы демонстрируют показатели в пределах нормы. Рекомендуется продолжать текущую работу 
+                    по поддержанию психологического благополучия обучающихся.</p>
+                `;
+                reportResult.appendChild(conclusionsDiv);
+            }
+            
+            // Скрываем рекомендации ИИ для общего отчета
+            aiRecommendations.classList.add('hidden');
+        }
+
+        // Получение читаемого названия субшкалы
+        function getSubscaleName(code) {
+            const names = {
+                'По1': 'Потребность в одобрении (1 часть)',
+                'По2': 'Потребность в одобрении (2 часть)',
+                'ПВГ': 'Подверженность влиянию группы',
+                'ПАУ': 'Принятие асоциальных установок',
+                'СР': 'Склонность к риску',
+                'И': 'Импульсивность',
+                'Т': 'Тревожность',
+                'Ф': 'Фрустрация',
+                'НСО': 'Наркопотребление в окружении',
+                'ПР': 'Принятие родителями',
+                'ПО': 'Принятие однокурсниками',
+                'СА': 'Социальная активность',
+                'СП': 'Самоконтроль поведения',
+                'С': 'Самоэффективность'
+            };
+            
+            return names[code] || code;
+        }
+
+        // Экспорт в Word
+        function exportToWord() {
+            const reportTypeValue = reportType.value;
+            let content = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="utf-8">
+                    <title>Отчет по социально-психологическому тестированию</title>
+                </head>
+                <body>
+                    <h1>Отчет по социально-психологическому тестирования</h1>
+                    <h2>ФГБОУ ВО «РОСБИОТЕХ»</h2>
+                    <p>педагог-психолог, автор программы: Тихомирова Анна Ивановна</p>
+                    <hr>
+            `;
+            
+            if (reportTypeValue === 'individual') {
+                const studentCode = selectedStudent.value;
+                const student = students.find(s => s.code === studentCode);
+                
+                if (student && student.results) {
+                    content += `
+                        <h3>Индивидуальный отчет</h3>
+                        <p><strong>ФИО:</strong> ${student.name}</p>
+                        <p><strong>Группа:</strong> ${student.group}</p>
+                        <p><strong>Возраст:</strong> ${student.age || 'Не указан'}</p>
+                        <p><strong>Код:</strong> ${student.code}</p>
+                        <p><strong>Дата тестирования:</strong> ${new Date().toLocaleDateString()}</p>
+                        
+                        <h4>Результаты тестирования</h4>
+                        <table border="1" cellspacing="0" cellpadding="5">
+                            <tr>
+                                <th>Показатель</th>
+                                <th>Значение</th>
+                                <th>Норма</th>
+                                <th>Интерпретация</th>
+                            </tr>
+                    `;
+                    
+                    for (const [subscale, value] of Object.entries(student.results)) {
+                        let norm, interpretation;
+                        if (value < 33) {
+                            norm = "Пониженный";
+                            interpretation = "Значение ниже нормы может указывать на недостаточную выраженность фактора";
+                        } else if (value > 66) {
+                            norm = "Повышенный";
+                            interpretation = "Значение выше нормы может указывать на повышенную выраженность фактора";
+                        } else {
+                            norm = "Норма";
+                            interpretation = "Значение в пределах нормы";
+                        }
+                        
+                        content += `
+                            <tr>
+                                <td>${getSubscaleName(subscale)}</td>
+                                <td>${value}%</td>
+                                <td>${norm}</td>
+                                <td>${interpretation}</td>
+                            </tr>
+                        `;
+                    }
+                    
+                    content += `</table>`;
+                    
+                    // Добавляем рекомендации ИИ
+                    content += `<h4>Рекомендации на основе результатов тестирования</h4>`;
+                    content += recommendationText.innerHTML;
+                }
+            } else if (reportTypeValue === 'group') {
+                const group = selectedGroup.value;
+                const groupStudents = students.filter(s => s.group === group && s.results);
+                
+                if (groupStudents.length > 0) {
+                    content += `
+                        <h3>Отчет по группе: ${group}</h3>
+                        <p><strong>Дата формирования отчета:</strong> ${new Date().toLocaleDateString()}</p>
+                        <p><strong>Количество студентов:</strong> ${groupStudents.length}</p>
+                        
+                        <h4>Средние показатели по группе</h4>
+                        <table border="1" cellspacing="0" cellpadding="5">
+                            <tr>
+                                <th>Показатель</th>
+                                <th>Среднее значение</th>
+                                <th>Норма</th>
+                            </tr>
+                    `;
+                    
+                    // Вычисляем средние значения
+                    const avgResults = {};
+                    const subscales = Object.keys(subscaleKeys);
+                    
+                    subscales.forEach(subscale => {
+                        let sum = 0;
+                        let count = 0;
+                        
+                        groupStudents.forEach(student => {
+                            if (student.results[subscale] !== undefined) {
+                                sum += student.results[subscale];
+                                count++;
+                            }
+                        });
+                        
+                        avgResults[subscale] = count > 0 ? Math.round(sum / count) : 0;
+                    });
+                    
+                    for (const [subscale, value] of Object.entries(avgResults)) {
+                        let norm;
+                        if (value < 33) {
+                            norm = "Пониженный";
+                        } else if (value > 66) {
+                            norm = "Повышенный";
+                        } else {
+                            norm = "Норма";
+                        }
+                        
+                        content += `
+                            <tr>
+                                <td>${getSubscaleName(subscale)}</td>
+                                <td>${value}%</td>
+                                <td>${norm}</td>
+                            </tr>
+                        `;
+                    }
+                    
+                    content += `</table>`;
+                    
+                    // Добавляем список студентов с отклонениями
+                    const studentsWithIssues = [];
+                    groupStudents.forEach(student => {
+                        let hasIssue = false;
+                        for (const [subscale, value] of Object.entries(student.results)) {
+                            if (value < 33 || value > 66) {
+                                hasIssue = true;
+                                break;
+                            }
+                        }
+                        
+                        if (hasIssue) {
+                            studentsWithIssues.push(student);
+                        }
+                    });
+                    
+                    if (studentsWithIssues.length > 0) {
+                        content += `<h4>Студенты с показателями вне нормы:</h4>`;
+                        content += `<ul>`;
+                        studentsWithIssues.forEach(student => {
+                            content += `<li>${student.name} (${student.code})</li>`;
+                        });
+                        content += `</ul>`;
+                    }
+                }
+            } else {
+                // Общий отчет
+                content += `
+                    <h3>Общий отчет по всем группам</h3>
+                    <p><strong>Дата формирования отчета:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Всего студентов:</strong> ${students.length}</p>
+                    <p><strong>Прошли тестирование:</strong> ${studentsWithResults.length}</p>
+                    
+                    <h4>Статистика по группам</h4>
+                    <table border="1" cellspacing="0" cellpadding="5">
+                        <tr>
+                            <th>Группа</th>
+                            <th>Всего студентов</th>
+                            <th>Прошли тестирование</th>
+                            <th>Процент completion</th>
+                        </tr>
+                `;
+                
+                const groupStats = {};
+                students.forEach(student => {
+                    if (!groupStats[student.group]) {
+                        groupStats[student.group] = {
+                            total: 0,
+                            completed: 0
+                        };
+                    }
+                    
+                    groupStats[student.group].total++;
+                    if (student.status === "Завершил") {
+                        groupStats[student.group].completed++;
+                    }
+                });
+                
+                // Получаем уникальные группы из студентов
+                const groups = [...new Set(students.map(s => s.group))].sort();
+                
+                for (const group of groups) {
+                    const stats = groupStats[group] || { total: 0, completed: 0 };
+                    const completionRate = Math.round((stats.completed / stats.total) * 100);
+                    content += `
+                        <tr>
+                            <td>${group}</td>
+                            <td>${stats.total}</td>
+                            <td>${stats.completed}</td>
+                            <td>${completionRate}%</td>
+                        </tr>
+                    `;
+                }
+                
+                content += `</table>`;
+                
+                // Добавляем выводы по группам с отклонениями
+                const groupsWithIssues = [];
+                groups.forEach(group => {
+                    const groupStudents = studentsWithResults.filter(s => s.group === group);
+                    if (groupStudents.length > 0) {
+                        let groupHasIssues = false;
+                        
+                        // Проверяем основные субшкалы
+                        const mainSubscales = ['По1', 'ПВГ', 'СР', 'Т', 'С'];
+                        mainSubscales.forEach(subscale => {
+                            let sum = 0;
+                            groupStudents.forEach(student => {
+                                sum += student.results[subscale];
+                            });
+                            const avgValue = Math.round(sum / groupStudents.length);
+                            
+                            if (avgValue < 33 || avgValue > 66) {
+                                groupHasIssues = true;
+                            }
+                        });
+                        
+                        if (groupHasIssues) {
+                            groupsWithIssues.push(group);
+                        }
+                    }
+                });
+                
+                if (groupsWithIssues.length > 0) {
+                    content += `<h4>Выводы по отчету:</h4>`;
+                    content += `<p>Следующие группы имеют показатели вне нормы: <strong>${groupsWithIssues.join(', ')}</strong>.</p>`;
+                    content += `<p>Рекомендуется обратить внимание на эти группы и провести дополнительную работу с обучающимися, 
+                    включая индивидуальные консультации и групповые занятия по развитию психологической устойчивости.</p>`;
+                } else {
+                    content += `<h4>Выводы по отчету:</h4>`;
+                    content += `<p>Все группы демонстрируют показатели в пределах нормы. Рекомендуется продолжать текущую работу 
+                    по поддержанию психологического благополучия обучающихся.</p>`;
+                }
+            }
+            
+            content += `</body></html>`;
+            
+            const blob = new Blob([content], { type: 'application/msword' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'report.doc';
+            link.click();
+        }
+
+        // Экспорт в Excel
+        function exportToExcel() {
+            const reportTypeValue = reportType.value;
+            let csvContent = "";
+            
+            if (reportTypeValue === 'individual') {
+                const studentCode = selectedStudent.value;
+                const student = students.find(s => s.code === studentCode);
+                
+                if (student && student.results) {
+                    csvContent = "Показатель,Значение(%),Норма,Интерпретация\n";
+                    
+                    for (const [subscale, value] of Object.entries(student.results)) {
+                        let norm, interpretation;
+                        if (value < 33) {
+                            norm = "Пониженный";
+                            interpretation = "Значение ниже нормы может указывать на недостаточную выраженность фактора";
+                        } else if (value > 66) {
+                            norm = "Повышенный";
+                            interpretation = "Значение выше нормы может указывать на повышенную выраженность фактора";
+                        } else {
+                            norm = "Норма";
+                            interpretation = "Значение в пределах нормы";
+                        }
+                        
+                        csvContent += `"${getSubscaleName(subscale)}",${value},${norm},"${interpretation}"\n`;
+                    }
+                }
+            } else if (reportTypeValue === 'group') {
+                const group = selectedGroup.value;
+                const groupStudents = students.filter(s => s.group === group && s.results);
+                
+                if (groupStudents.length > 0) {
+                    csvContent = "Показатель,Среднее значение,Норма\n";
+                    
+                    // Вычисляем средние значения
+                    const avgResults = {};
+                    const subscales = Object.keys(subscaleKeys);
+                    
+                    subscales.forEach(subscale => {
+                        let sum = 0;
+                        let count = 0;
+                        
+                        groupStudents.forEach(student => {
+                            if (student.results[subscale] !== undefined) {
+                                sum += student.results[subscale];
+                                count++;
+                            }
+                        });
+                        
+                        avgResults[subscale] = count > 0 ? Math.round(sum / count) : 0;
+                    });
+                    
+                    for (const [subscale, value] of Object.entries(avgResults)) {
+                        let norm;
+                        if (value < 33) {
+                            norm = "Пониженный";
+                        } else if (value > 66) {
+                            norm = "Повышенный";
+                        } else {
+                            norm = "Норма";
+                        }
+                        
+                        csvContent += `"${getSubscaleName(subscale)}",${value},${norm}\n`;
+                    }
+                }
+            } else {
+                // Общий отчет
+                csvContent = "Группа,Всего студентов,Прошли тестирование,Процент completion\n";
+                
+                const groupStats = {};
+                students.forEach(student => {
+                    if (!groupStats[student.group]) {
+                        groupStats[student.group] = {
+                            total: 0,
+                            completed: 0
+                        };
+                    }
+                    
+                    groupStats[student.group].total++;
+                    if (student.status === "Завершил") {
+                        groupStats[student.group].completed++;
+                    }
+                });
+                
+                // Получаем уникальные группы из студентов
+                const groups = [...new Set(students.map(s => s.group))].sort();
+                
+                for (const group of groups) {
+                    const stats = groupStats[group] || { total: 0, completed: 0 };
+                    const completionRate = Math.round((stats.completed / stats.total) * 100);
+                    csvContent += `"${group}",${stats.total},${stats.completed},${completionRate}\n`;
+                }
+            }
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'report.csv';
+            link.click();
+        }
+
+        // Экспорт в PDF
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const reportTypeValue = reportType.value;
+            
+            // Заголовок
+            doc.setFontSize(16);
+            doc.text("Отчет по социально-психологическому тестированию", 105, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text("ФГБОУ ВО «РОСБИОТЕХ»", 105, 22, { align: 'center' });
+            doc.text("педагог-психолог, автор программы: Тихомирова Анна Ивановна", 105, 29, { align: 'center' });
+            
+            let yPosition = 40;
+            
+            if (reportTypeValue === 'individual') {
+                const studentCode = selectedStudent.value;
+                const student = students.find(s => s.code === studentCode);
+                
+                if (student && student.results) {
+                    // Информация о студенте
+                    doc.setFontSize(14);
+                    doc.text("Индивидуальный отчет", 105, yPosition, { align: 'center' });
+                    yPosition += 10;
+                    
+                    doc.setFontSize(12);
+                    doc.text(`ФИО: ${student.name}`, 20, yPosition);
+                    yPosition += 7;
+                    doc.text(`Группа: ${student.group}`, 20, yPosition);
+                    yPosition += 7;
+                    doc.text(`Возраст: ${student.age || 'Не указан'}`, 20, yPosition);
+                    yPosition += 7;
+                    doc.text(`Код: ${student.code}`, 20, yPosition);
+                    yPosition += 7;
+                    doc.text(`Дата тестирования: ${new Date().toLocaleDateString()}`, 20, yPosition);
+                    yPosition += 15;
+                    
+                    // Таблица результатов
+                    doc.setFontSize(12);
+                    doc.text("Результаты тестирования", 105, yPosition, { align: 'center' });
+                    yPosition += 10;
+                    
+                    const tableData = [];
+                    for (const [subscale, value] of Object.entries(student.results)) {
+                        let norm;
+                        if (value < 33) {
+                            norm = "Пониженный";
+                        } else if (value > 66) {
+                            norm = "Повышенный";
+                        } else {
+                            norm = "Норма";
+                        }
+                        
+                        tableData.push([getSubscaleName(subscale), `${value}%`, norm]);
+                    }
+                    
+                    doc.autoTable({
+                        startY: yPosition,
+                        head: [['Показатель', 'Значение', 'Норма']],
+                        body: tableData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [54, 162, 235] }
+                    });
+                    
+                    // Добавляем рекомендации ИИ
+                    yPosition = doc.lastAutoTable.finalY + 10;
+                    doc.setFontSize(12);
+                    doc.text("Рекомендации на основе результатов тестирования:", 20, yPosition);
+                    yPosition += 7;
+                    
+                    // Добавляем основные рекомендации
+                    const recommendations = [];
+                    if (student.results.Т > 66) {
+                        recommendations.push("Высокий уровень тревожности. Рекомендуется освоить техники релаксации.");
+                    }
+                    if (student.results.С < 33) {
+                        recommendations.push("Низкая самоэффективность. Рекомендуется работать над уверенностью в себе.");
+                    }
+                    if (student.results.СР > 66) {
+                        recommendations.push("Повышенная склонность к риску. Рекомендуется развивать навыки оценки рисков.");
+                    }
+                    
+                    if (recommendations.length === 0) {
+                        recommendations.push("Результаты в пределах нормы. Рекомендуется продолжать развивать социальные и эмоциональные навыки.");
+                    }
+                    
+                    recommendations.forEach((rec, index) => {
+                        if (yPosition > 270) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+                        doc.text(`${index + 1}. ${rec}`, 20, yPosition);
+                        yPosition += 7;
+                    });
+                }
+            } else if (reportTypeValue === 'group') {
+                const group = selectedGroup.value;
+                const groupStudents = students.filter(s => s.group === group && s.results);
+                
+                if (groupStudents.length > 0) {
+                    // Заголовок
+                    doc.setFontSize(14);
+                    doc.text(`Отчет по группе: ${group}`, 105, yPosition, { align: 'center' });
+                    yPosition += 10;
+                    
+                    doc.setFontSize(12);
+                    doc.text(`Дата формирования отчета: ${new Date().toLocaleDateString()}`, 20, yPosition);
+                    yPosition += 7;
+                    doc.text(`Количество студентов: ${groupStudents.length}`, 20, yPosition);
+                    yPosition += 15;
+                    
+                    // Таблица средних значений
+                    doc.setFontSize(12);
+                    doc.text("Средние показатели по группе", 105, yPosition, { align: 'center' });
+                    yPosition += 10;
+                    
+                    // Вычисляем средние значения
+                    const avgResults = {};
+                    const subscales = Object.keys(subscaleKeys);
+                    
+                    subscales.forEach(subscale => {
+                        let sum = 0;
+                        let count = 0;
+                        
+                        groupStudents.forEach(student => {
+                            if (student.results[subscale] !== undefined) {
+                                sum += student.results[subscale];
+                                count++;
+                            }
+                        });
+                        
+                        avgResults[subscale] = count > 0 ? Math.round(sum / count) : 0;
+                    });
+                    
+                    const tableData = [];
+                    for (const [subscale, value] of Object.entries(avgResults)) {
+                        let norm;
+                        if (value < 33) {
+                            norm = "Пониженный";
+                        } else if (value > 66) {
+                            norm = "Повышенный";
+                        } else {
+                            norm = "Норма";
+                        }
+                        
+                        tableData.push([getSubscaleName(subscale), `${value}%`, norm]);
+                    }
+                    
+                    doc.autoTable({
+                        startY: yPosition,
+                        head: [['Показатель', 'Среднее значение', 'Норма']],
+                        body: tableData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [54, 162, 235] }
+                    });
+                }
+            } else {
+                // Общий отчет
+                doc.setFontSize(14);
+                doc.text("Общий отчет по всем группам", 105, yPosition, { align: 'center' });
+                yPosition += 10;
+                
+                doc.setFontSize(12);
+                doc.text(`Дата формирования отчета: ${new Date().toLocaleDateString()}`, 20, yPosition);
+                yPosition += 7;
+                doc.text(`Всего студентов: ${students.length}`, 20, yPosition);
+                yPosition += 7;
+                
+                const studentsWithResults = students.filter(s => s.results);
+                doc.text(`Прошли тестирование: ${studentsWithResults.length}`, 20, yPosition);
+                yPosition += 15;
+                
+                // Таблица статистики по группам
+                doc.setFontSize(12);
+                doc.text("Статистика по группам", 105, yPosition, { align: 'center' });
+                yPosition += 10;
+                
+                const groupStats = {};
+                students.forEach(student => {
+                    if (!groupStats[student.group]) {
+                        groupStats[student.group] = {
+                            total: 0,
+                            completed: 0
+                        };
+                    }
+                    
+                    groupStats[student.group].total++;
+                    if (student.status === "Завершил") {
+                        groupStats[student.group].completed++;
+                    }
+                });
+                
+                const tableData = [];
+                // Получаем уникальные группы из студентов
+                const groups = [...new Set(students.map(s => s.group))].sort();
+                
+                for (const group of groups) {
+                    const stats = groupStats[group] || { total: 0, completed: 0 };
+                    const completionRate = Math.round((stats.completed / stats.total) * 100);
+                    tableData.push([group, stats.total, stats.completed, `${completionRate}%`]);
+                }
+                
+                doc.autoTable({
+                    startY: yPosition,
+                    head: [['Группа', 'Всего студентов', 'Прошли тестирование', 'Процент completion']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [54, 162, 235] }
+                });
+            }
+            
+            doc.save('report.pdf');
+        }
+
+        // Сохранение данных в localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('spt_students', JSON.stringify(students));
+        }
+
+        // Загрузка данных из localStorage
+        function loadFromLocalStorage() {
+            const savedStudents = localStorage.getItem('spt_students');
+            
+            if (savedStudents) {
+                students = JSON.parse(savedStudents);
+            }
+        }
+    </script>
+</body>
+</html>
